@@ -6,6 +6,13 @@ File format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 See cloning and downloading instructions [here](https://www.ivoyager.dev/developers/).
 
+## [v0.2.3] - UNRELEASED
+
+Under development using Godot 4.7.2.
+
+### Added
+* Automation: IVSave declares its save, load and status members for an automation client, such as the [Assistant](https://github.com/ivoyager/ivoyager_assistant) plugin, in `AUTOMATION_METHODS` and `AUTOMATION_PROPERTIES`, with gates in `is_automation_available()`.
+
 ## [v0.1.2] - 2026-06-29
 
 Released using Godot 4.6.
@@ -70,6 +77,7 @@ Initial alpha release!
 
 This plugin replaces [ivoyager_tree_saver](https://github.com/ivoyager/ivoyager_tree_saver). It has that plugin's functionality plus save/load GUI classes taken out of [ivoyager_core](https://github.com/ivoyager/ivoyager_core).
 
+[v0.2.3]: https://github.com/ivoyager/ivoyager_save/compare/v0.1.2...HEAD
 [v0.1.2]: https://github.com/ivoyager/ivoyager_save/compare/v0.1.1...v0.1.2
 [v0.1.1]: https://github.com/ivoyager/ivoyager_save/compare/v0.1...v0.1.1
 [v0.1]: https://github.com/ivoyager/ivoyager_save/compare/v0.0.3...v0.1

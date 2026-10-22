@@ -96,11 +96,31 @@ const DEBUG_PRINT_PERSIST_OBJECTS_ON_SAVE := false
 ## Set true to print all persist objects before load.
 const DEBUG_PRINT_PERSIST_OBJECTS_BEFORE_LOAD := false
 
+## Members an automation client may call and read, with gates in
+## [method is_automation_available].
+const AUTOMATION_METHODS: Array[StringName] = [
+	&"quicksave",
+	&"autosave",
+	&"save_file",
+	&"quickload",
+	&"load_file",
+	&"has_file",
+	&"get_last_modified_file_path",
+]
+const AUTOMATION_PROPERTIES: Array[StringName] = [
+	&"is_saving",
+	&"is_loading",
+	&"directory",
+	&"file_extension",
+]
 
 
-## Read-only.
+
+## True while a save is in progress, from its start until it finishes or its
+## checkpoint refuses it. Read-only.
 var is_saving: bool
-## Read-only.
+## True while a load is in progress, from its start until the loaded tree is
+## built or its checkpoint refuses it. Read-only.
 var is_loading: bool
 
 # TODO: Replace save_root
@@ -259,7 +279,8 @@ func set_directory(dir_path: String) -> void:
 	_directory = dir_path
 
 
-## Path is constructed according to "quicksave_" properties.
+## Saves to the quicksave file in [member directory], named by the "quicksave_"
+## properties. Returns before the save finishes; see [member is_saving].
 func quicksave() -> void:
 	if !_is_configured:
 		push_configure_warning()
@@ -267,7 +288,9 @@ func quicksave() -> void:
 	save_file(SaveType.QUICKSAVE)
 
 
-## Path is constructed according to "autosave_" properties.
+## Saves to the next autosave file in [method get_autosaves_subdirectory], named
+## by the "autosave_" properties, and trims the oldest past [member autosave_number].
+## Returns before the save finishes; see [member is_saving].
 func autosave() -> void:
 	if !_is_configured:
 		push_configure_warning()
@@ -275,8 +298,9 @@ func autosave() -> void:
 	save_file(SaveType.AUTOSAVE)
 
 
-## Load the last modified file at the cached directory (or its subdirectories),
-## or request load dialog if there are none.
+## Loads the last modified save file in [member directory] or its
+## subdirectories, or opens the load dialog if there is none. Returns before the
+## load finishes; see [member is_loading].
 func quickload() -> void:
 	if !_is_configured:
 		push_configure_warning()
@@ -297,8 +321,10 @@ func start_autosave_timer(minutes: float) -> void:
 	start(seconds)
 
 
-## Use default args to request save dialog. [param path] is used only if
-## [code]save_type == SaveType.NAMED_SAVE[/code].
+## Saves the game: a [constant NAMED_SAVE] to [param path], or a quicksave or
+## autosave to the path its properties construct ([param path] is then ignored).
+## A named save without [param path] opens the save dialog instead. Returns
+## before the save finishes; see [member is_saving].
 func save_file(save_type := SaveType.NAMED_SAVE, path := "") -> void:
 	if !_is_configured:
 		push_configure_warning()
@@ -333,8 +359,11 @@ func save_file(save_type := SaveType.NAMED_SAVE, path := "") -> void:
 	status_changed.emit(false, false)
 
 
-## Use default args to request load dialog. If [code]load_last == true[/code],
-## then [param path] will be ignored.
+## Loads the save file at [param path], or with [param load_last] the last
+## modified one in [member directory] or its subdirectories ([param path] is then
+## ignored). Without a file to load, it opens the load dialog instead. Returns
+## before the load finishes, which frees and rebuilds the procedural tree; see
+## [member is_loading].
 func load_file(load_last := false, path := "") -> void:
 	if !_is_configured:
 		push_configure_warning()
@@ -400,7 +429,8 @@ func close_dialogs() -> void:
 	close_dialogs_requested.emit()
 
 
-## The search includes subdirectories.
+## Returns the most recently modified save file in [param dir_path] or its
+## subdirectories, or an empty string if there is none.
 func get_last_modified_file_path(dir_path: String) -> String:
 	var path_time_result := ["", 0]
 	_get_last_modified(dir_path, path_time_result)
@@ -439,6 +469,36 @@ func trim_autosaves_subdirectory() -> void:
 		var item: Array = list.pop_back()
 		var path: String = item[0]
 		DirAccess.remove_absolute(path)
+
+
+## Whether an automation client may use [param member] now. Saving and loading
+## wait for [method configure_save_plugin] and for any save or load in progress
+## to finish, and need [member save_permit] or [member load_permit]. A quickload
+## also needs a save file in [member directory], without which it would open the
+## load dialog.
+func is_automation_available(member: StringName) -> bool:
+	match member:
+		&"quicksave", &"autosave", &"save_file":
+			return _can_start_save()
+		&"quickload":
+			return _can_start_load() and has_file(_directory)
+		&"load_file":
+			return _can_start_load()
+	return true
+
+
+func _can_start_save() -> bool:
+	if !_is_configured or is_saving or is_loading:
+		return false
+	var permitted: bool = save_permit.call()
+	return permitted
+
+
+func _can_start_load() -> bool:
+	if !_is_configured or is_saving or is_loading:
+		return false
+	var permitted: bool = load_permit.call()
+	return permitted
 
 
 func _get_path_modified_time_list(dir_path: String) -> Array[Array]:

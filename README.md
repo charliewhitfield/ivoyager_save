@@ -23,6 +23,8 @@ The [IVSave](https://github.com/ivoyager/ivoyager_save/blob/master/save.gd) sing
 
 The plugin has [GUI Controls](https://github.com/ivoyager/ivoyager_save/tree/master/gui) that you can add to your project. These include two file dialogs (for save and load) and four menu buttons ("Load File", "Quickload", "Save As", and "Quicksave").
 
+IVSave declares its save and load methods and status for automation clients, such as the [Assistant](https://github.com/ivoyager/ivoyager_assistant) plugin, in `AUTOMATION_*` constants; `is_automation_available()` says when each may be used.
+
 [IVTreeSaver](https://github.com/ivoyager/ivoyager_save/blob/master/tree_saver.gd) provides the recursive serialization/deserialization functionality. It can persist properties recursively that are Godot built-in types or one of two kinds of "persist objects":
 
 1. A **"properties-only"** Node can have persist properties but won't be freed and rebuilt on game load.
