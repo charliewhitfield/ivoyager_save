@@ -13,6 +13,9 @@ Under development using Godot 4.7.2.
 ### Added
 * Automation: IVSave declares its save, load and status members for an automation client, such as the [Assistant](https://github.com/ivoyager/ivoyager_assistant) plugin, in `AUTOMATION_METHODS` and `AUTOMATION_PROPERTIES`, with gates in `is_automation_available()`.
 
+### Fixed
+* `IVSaveUtils.debug_print_persist_register()` with `procedural_only` printed only the properties-only objects, so a load's unfreed-procedural-objects report never named the culprits.
+
 ## [v0.1.2] - 2026-06-29
 
 Released using Godot 4.6.

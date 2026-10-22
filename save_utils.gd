@@ -237,7 +237,7 @@ static func debug_print_persist_register(procedural_only := false) -> bool:
 		if !object:
 			continue
 		var is_procedural := is_procedural_object(object)
-		if is_procedural and procedural_only:
+		if !is_procedural and procedural_only:
 			continue
 		var script: Script = object.get_script()
 		var file := script.resource_path.get_file()
